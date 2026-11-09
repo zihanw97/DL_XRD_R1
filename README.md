@@ -11,9 +11,7 @@ labels, with logit-distillation temperature `T=2`, and retains its replay and
 geometry-training phases.
 See [fixed/README.md](fixed/README.md) and
 [continual/README.md](continual/README.md) for the separate configurations.
-These cleaned recipes require new runs: the fixed-model recipe differs from
-the earlier 30%-anchor refined experiments, and continual learning differs
-from the earlier 127-anchor, `T=2` experiments. No results or checkpoints are included.
+No results or checkpoints are included.
 
 ## Download the inputs
 

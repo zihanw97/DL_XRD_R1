@@ -25,7 +25,7 @@ secondary comparison: 72 four-stage chains in total. Five of the six controls
 were displayed in the latest manuscript; the separate uniform experience
 replay control remains available in the code.
 
-To explicitly register and then run a fresh comparison:
+To explicitly register and then run the comparison:
 
 ```bash
 python continual/launch_suite.py prepare --run-dir continual/results/comparison --gpus 0
@@ -56,9 +56,7 @@ remapping blocks; it does not resample labels. The 79 experimental validation
 labels remain separate from the training-label budget. Legacy masks inside
 the unchanged NPZ cache are not used for training.
 
-This 10%-label, `T=2` recipe requires fresh runs; it does not reproduce the
-earlier 127-anchor, `T=2` continual results. Existing registered runs keep their
-source snapshots and masks; use a fresh run directory for the updated recipe.
+Registered runs retain their source snapshots and training-label masks.
 
 The procedure uses:
 
