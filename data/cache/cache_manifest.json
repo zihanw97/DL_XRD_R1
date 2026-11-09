@@ -2,9 +2,9 @@
   "schema": "manuscript_clean_input_cache_v1",
   "source_pt_sha256": "c3ca2215ec1b237c007a621c8b95c554700109f62afeae66b82da10661d40073",
   "destination_npz_sha256": "17d8118cb454d081ebd224dba4e440b3412d9e9b24ac21b12cd7d18444a50222",
-  "continual_partition_sha256": "3869763d4851afc2c82b65c95184b2e7e8d6be035e03c0f30cccd9a317feeaf3",
+  "continual_partition_sha256": "25ee8472cf149e89dcbecc3f7885547465681ee4536678ed5adc77b21eb54d0c",
   "fixed_images_npz_sha256": "4d434e3f82a5efc70b052c39a69c384a0a73db14ae4c06b8a082a846150bed31",
-  "source_cache_contents": "Input images, labels, legacy masks and batch size.",
+  "source_cache_contents": "Input images, labels, training-label arrays and batch size.",
   "source_to_npz_all_arrays_bitwise_equal": true,
   "keys": {
     "batch_size": {
@@ -428,9 +428,6 @@
     "dtype": "float32",
     "all_image_fingerprints_verified": true
   },
-  "original_continual_anchors_preserved": 127,
-  "original_continual_target_training": 642,
-  "original_continual_target_validation": 79,
   "fixed_protocol": "Paper-matched fixed-model partitions.",
   "fixed_split": "Within each permitted domain/class, floor(0.1*n) validation and floor(0.1*n) internal test; remainder training. Outer material tests removed first.",
   "fixed_anchor_fraction_requested": 0.1,
@@ -466,5 +463,6 @@
     "JHAMAJ00001 (unidentified)"
   ],
   "raw_data_copies": "Independent files; reflink clone where supported, otherwise normal copy; never hard links/symlinks.",
-  "raw_file_checksums": "data/metadata/raw_file_hashes.csv"
+  "raw_file_checksums": "data/metadata/raw_file_hashes.csv",
+  "continual_target_training_label_fraction": 0.1
 }

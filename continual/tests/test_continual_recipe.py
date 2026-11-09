@@ -61,13 +61,12 @@ class ContinualRecipeTests(unittest.TestCase):
                     row["split"] == "train" else "not_training")
         self.assertEqual(sum(anchors.values()), 64)
         with data.DEFAULT_ASSIGNMENTS.open(newline="") as stream:
-            legacy = list(csv.DictReader(stream))
-        legacy_anchors = {r["legacy_cache_id"] for r in legacy
-                          if r["anchor_status"] == "anchor"}
+            registered = list(csv.DictReader(stream))
+        registered_anchors = {r["legacy_cache_id"] for r in registered
+                              if r["anchor_status"] == "anchor"}
         active_anchors = {r["legacy_cache_id"] for r in self.rows
                           if r["anchor_status"] == "anchor"}
-        self.assertEqual(len(legacy_anchors), 127)
-        self.assertLessEqual(active_anchors, legacy_anchors)
+        self.assertEqual(registered_anchors, active_anchors)
         self.assertEqual(data.sha256(data.DEFAULT_ASSIGNMENTS),
                          data.EXPECTED_ASSIGNMENTS_SHA256)
         for group, n in training.items():

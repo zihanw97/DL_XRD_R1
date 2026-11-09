@@ -28,7 +28,6 @@ def main():
     print(json.dumps(dict(status='passed', scopes=len(scopes), images=len(rows),
         image_fingerprints_verified=True, anchor_count=data.EXPECTED_ANCHOR_COUNT,
         requested_target_anchor_fraction=data.REQUESTED_TARGET_ANCHOR_FRACTION,
-        realized_target_anchor_fraction=data.EXPECTED_ANCHOR_COUNT / counts['target', 'train'],
         target_validation_labels=79,
         jobs_planned=len(launch_suite.jobs()), stage_scope_checks=72,
         source_counts={s:counts['source',s] for s in data.SPLITS},

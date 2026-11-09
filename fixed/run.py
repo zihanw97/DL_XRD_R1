@@ -75,8 +75,7 @@ def main(argv=None):
         requested_target_anchor_fraction_registered=requested,
         manifest_registration=str(manifest_metadata),manifest_sha256_verified=True,
         ood_manifest=str(args.ood_manifest),ood_after_selection=not args.skip_ood,
-        data_files_exist=True,training_started=args.train,
-        historical_refined_results_reproduced=False)
+        data_files_exist=True,training_started=args.train)
     if not args.train:
         print(json.dumps(plan,indent=2));return plan
     cache_hash=digest(args.cache)

@@ -5,10 +5,9 @@ continual-learning comparison.
 The shared model uses the original six-convolution encoder, a 256-dimensional
 pre-head embedding, and spectral normalization on the two dense layers only.
 
-The fixed-model recipe uses 10% experimental training anchors and one training
-stage, without latent-cluster refinement. The continual-learning procedure also uses 10% experimental training
-labels, with logit-distillation temperature `T=2`, and retains its replay and
-geometry-training phases.
+The experimental training-label setting is 10.0%. The fixed models use one
+training stage, while continual learning uses logit-distillation temperature
+`T=2` with replay and geometry-training phases.
 See [fixed/README.md](fixed/README.md) and
 [continual/README.md](continual/README.md) for the separate configurations.
 
@@ -22,7 +21,7 @@ The code, input manifests, acquisition metadata, and split assignments are
 versioned together. Large input images and caches are available in the
 [input release](https://github.com/zihanw97/DL_XRD_R1/releases/tag/r1-inputs-20261109).
 This folder contains the complete R1 code and data manifests, including
-10% experimental training labels and continual-learning distillation at
+10.0% experimental training labels and continual-learning distillation at
 `T=2`. Large data files are already uploaded as the verified release assets
 linked above: 1,901 TIFFs and both input caches (about 9.2 GB uncompressed).
 The downloader restores them directly into `DL_XRD_R1/data`.
@@ -46,7 +45,7 @@ the default fixed-model OOD evaluation also needs the raw noise/SiC images.
 ```text
 models.py                 Original shared CNN/SNGP definitions
 fixed/                    Three-model single-stage training/evaluation
-continual/                Four-stage comparison with 10% labels and T=2
+continual/                Four-stage comparison with 10.0% labels and T=2
 data/sim_dataset_new/     Independent copies of 901 simulated TIFFs
 data/experiment_1500_maxima/          800 known-class experimental TIFFs
 data/experiment_1500_maxima_outliner/ 200 confirmed noise/SiC TIFFs

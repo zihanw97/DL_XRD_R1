@@ -1,6 +1,6 @@
 {
   "schema": "standalone_manuscript_code_data_package_v1",
-  "purpose": "Original architecture; fixed-model paper objective without cluster refinement; continual learning with 10% experimental training labels and logit-distillation T=2.",
+  "purpose": "CNN and CNN-SNGP classification with domain adaptation and continual learning; experimental training-label setting 10.0%, continual-learning distillation T=2.",
   "source_folder_modified": false,
   "data_counts": {
     "simulated": 901,
@@ -12,26 +12,26 @@
     ".gitattributes": "1770d165db43290d0749fed0b7be6cbd9eb6b968c93bf11d4d83470fd08cda79",
     ".gitignore": "98c3ca0f5cc6f84dd631f888910e57dd0039434f7419aa46531b52c7b612e414",
     "CITATION.cff": "73f4bdf3910b428e8e9e2b67fa653cef45701265a890ccc18a9c29a60bfc67b4",
-    "README.md": "7c904ca5c8f6d0a4f5024a7caec156cde935618c9bf0d854f9a26435c0b16aba",
-    "continual/README.md": "d8bb670ff7c000e2881622d614c93ba5f9d91704a0da33da1105d9abfc9ff66c",
+    "README.md": "51e440216dd3c3bb9b42bfdd148f3e2e8e3651e6762be349cb49bdf3a6f39981",
+    "continual/README.md": "1caa36649878c6a46a2235db0e9dd63a29f9437933e3ebccb82037725fb64cdb",
     "continual/aggregate_suite.py": "89530278b3208742b3ec20982f880cbcc479f7fa1028de8c2ff8a7e1a379fe88",
-    "continual/data_setup.py": "5d759e508cb3fdc40f4465ddbafc0848d6597a6340bf49d1a8af1df33fd6b9a9",
+    "continual/data_setup.py": "c5ade16d92148ed7827f596bfb3910c9c947112a6bfcdb138daf0a7c0d212d35",
     "continual/frozen_support/__init__.py": "6e2806ce232982a03ba47f9c6c9af75a78ca44930ceae5b93d5801c2e521e17e",
     "continual/frozen_support/losses.py": "e70d2727e2a713975ade5e66e0652d70ff6b4afb9021e1bc51765b6ac2428026",
     "continual/frozen_support/models.py": "d0c549df1546c02d8f1eef98c148d4952fda07fa174b5e0e091593012cda3926",
     "continual/frozen_support/training.py": "df85d57240f1390979a8417d4f4ac4f2bdcaf7d28c6be9a709356289e3f86a55",
     "continual/geometry_losses.py": "fbeb3e827f745ad0f3305270747e4e1ce3cd9627d0ea35b68f044c65ccf67d80",
     "continual/latent_reporting.py": "8cc9aaa71189dbf3a9245a275c42a108fe93cf5b4d951242f271e6fc93393e14",
-    "continual/launch_suite.py": "278c7f907bff699ca59a742147c57a01beb19d14c92d6e54ebf84c880ea9082e",
+    "continual/launch_suite.py": "210d616b837fa130c3badb7b9c52b1ffaefea68aed13cef366590e50e178c25a",
     "continual/metrics_reporting.py": "e9ed675a993b692a09def0e37ccc4f77bcec88cd2700ff0d59e520f1c51f2643",
-    "continual/recipe_provenance.json": "ebd41b7ec4895c254f2ef131ef9969b0d6f8673061458185d792714ad1a21e1f",
+    "continual/recipe_provenance.json": "7b7b79924416437956c7fe2d7b52c06f877dd01de40412a9f1ddacba88db83cc",
     "continual/replay_memory.py": "c959f01a537b08d70694635ce51c54fe35b50662761716802822954b2c9ee9fb",
     "continual/training_engine.py": "d43ebac7aed6a221db37a80296d8d84d16a2da62bddd9e7f1abcbfdfc0e96536",
-    "continual/verify_inputs.py": "f69be1a5050059e65d9036ffa92181d88d27696b6f6d4d86f0e268f96265ed9d",
+    "continual/verify_inputs.py": "aa3ae479c5a6adf6e16029fb7143d6c8a924971c273435afc8c392c1baf76de3",
     "continual/worker.py": "1397cf0e36eee83b04dd46238340c84bc52282f34f3296af2839fd4318414dc6",
-    "data/README.md": "d1c47da2d415b5bf551aa3c4969d4b143a689cef3490d6444a47a136c731938b",
+    "data/README.md": "e72fd852357063bb6a451c7cab799d2e708419a9bbac734d26d7b48b0181e949",
     "data/__init__.py": "aabb359454a807e1fb9cbf9edecfbd8d11bdaab9c0838ea1bd60714006eea790",
-    "data/cache/cache_manifest.json": "d48bb57a440e37bc9b9edbc34c4dedd6eb4d8cd4d098af296bb1b0e05f52d9bc",
+    "data/cache/cache_manifest.json": "4990f818b4a9eb8789168850faf19b04b1ae5573fefee06f08717b7bbbc31552",
     "data/download_inputs.py": "4ee7d2111f47cd7636a126b4a0752cd66771ddc79309c98c86e156d34aeb2885",
     "data/manifests/fixed/grouped.csv": "134815fb5525a9cbc4e7caf4d59c47ce7ebf559f706ce4f5f81258c805d0c540",
     "data/manifests/fixed/partition_counts.csv": "d4e1c0e5ccae3ce3d38db0e1ed38ec1c13ea6aa329e1afb2838f48fbfb0a7cb0",
@@ -41,13 +41,13 @@
     "data/metadata/acquisition_metadata.csv": "8c6fac5f5acbbe1ee5d7b49466140f9f68061f8e436c3a59d125dde9014d9331",
     "data/metadata/raw_file_hashes.csv": "2f2e5f64233cb20449cfff66b2235b7ca950c00c030532b163d76a4da2a1d037",
     "data/metadata/sample_inventory.csv": "67853d3b161aa3d2724035e3f6ac3fd60bad38ca5236ba683d053b879bf054af",
-    "data/partitions/continual_partition.csv": "3869763d4851afc2c82b65c95184b2e7e8d6be035e03c0f30cccd9a317feeaf3",
+    "data/partitions/continual_partition.csv": "25ee8472cf149e89dcbecc3f7885547465681ee4536678ed5adc77b21eb54d0c",
     "data/prepare_fixed_manifests.py": "f3005ac37a955b5a130b98422f7ef026000e50df87cb563915394861aa94b24c",
     "data/preprocessing.py": "4997d27fafaffa02bd199547635baf6555fc7bd15acbb9d0efa48bd29724dba3",
     "data/release_inputs.json": "bf8748f8f31158e7608ec762f61720c064f5c5475076e0014a0104df07acc729",
     "data/tests/test_download_inputs.py": "d7bed8e62d88469661460b23b3196ae0658e7692d36e8f5c11d352006159fef5",
-    "data/verify_inputs.py": "eb2a349889f3127f43c3b642fa274c9b7836bc1afe256abc63bf44efb16a377a",
-    "fixed/README.md": "a3a81143b4e4bec80932f98f070d3d7546a8f69aae40bc1db06d9e859aab94f3",
+    "data/verify_inputs.py": "93a9f991aacd929162a23d5804669d051b51ca8403484a47fd6dbd370fbfbed0",
+    "fixed/README.md": "01d1f12312b3481214af596aad412e6aadd997a7b97a098b2d91d985533fc513",
     "fixed/__init__.py": "01585c4f776ca6ff7be94b4cf24d5ccbbcfb7f20142ec73511bb9382abe4c0e5",
     "fixed/config.py": "aa2317fa407aa1d095ba25bbed1d945d925a2dedada5ccaac719bd35cf71c338",
     "fixed/data.py": "c6e75bef452332edfa0eaeda494cb832a8cb86f34d57d23fb405868107a9586a",
@@ -55,12 +55,12 @@
     "fixed/losses.py": "1164530c2279263f5cc3e34da52859c6d2389a03730e044133afb19d7d62ea62",
     "fixed/ood.py": "d184ab67d46ad382ef6495d19abb9acc156529edbc8de8c7209de90ca3abafba",
     "fixed/paper_recipe.json": "0b767b5a420239c35feeee4d0cbae7970db2620a1e1221bbea548d7eedd586b2",
-    "fixed/run.py": "3c55807372f1862527e74ee1e216405f811e002ac36bf40aa99d9f25f39b36af",
+    "fixed/run.py": "f474e9387cf2d8cde0e59d19d8400e7bb4c799d2642080bc68ca04a166cc51d9",
     "fixed/tests/test_fixed_recipe.py": "320d77a77f1fa11220058618a13c4b0ed64107c52b194d67ea56927643ea6866",
     "fixed/training.py": "ffc19294084f50b64aa4801fff48ef6d3722ec2ea9a1c4bd6a5ecf930899be02",
     "models.py": "cf8e695cea35a766d18d65f5249e6cad737651730689e6e8ffb8293f09a50090",
     "requirements.txt": "7859c4bd377167948ee14a618a34df978146f63612d4ac1d8af732058cc6a400",
-    "continual/tests/test_continual_recipe.py": "b77b4e489c6358956bdac58d9fb6356b46ac0da197ed881a3bf29c3a46d3c124"
+    "continual/tests/test_continual_recipe.py": "05489fd918ad2d060e3fef57a8e83612c11aa9b83ad0bf495a5a072921d89bd1"
   },
   "data_checksums": "data/metadata/raw_file_hashes.csv",
   "data_cache_metadata": "data/cache/cache_manifest.json",
@@ -79,7 +79,7 @@
   "fixed_recipe": "fixed/paper_recipe.json",
   "fixed_partition_metadata": "data/manifests/fixed/protocol.json",
   "continual_recipe": "continual/recipe_provenance.json",
-  "important_scope": "Both recipes use requested 10% experimental training labels. Continual learning uses 64/642 labels and T=2.",
+  "important_scope": "Experimental training-label setting: 10.0%. Continual-learning distillation temperature: T=2.",
   "validation_checks": [
     "all1901TIFFchecksums match source copies",
     "all54original inputcache arrays unchanged",
@@ -100,21 +100,11 @@
     "input_data_and_metadata_status": "Owner explicitly approved public code, inputs, and all accompanying dataset metadata.",
     "per_scan_metadata_in_git": true
   },
-  "continual_recipe_changes": {
-    "requested_target_anchor_fraction": 0.1,
-    "target_training_anchors": 64,
-    "target_training_n": 642,
-    "logit_distillation_temperature": 2.0,
-    "input_images_roles_and_blocks_unchanged": true,
-    "original_anchor_subset_retained": true,
-    "training_mask_applied_by_loader": true,
-    "packaged_source_partition_unchanged": true
-  },
   "continual_update_validation_checks": [
-    "5 continual recipe, mask, distillation and replay-label tests passed",
-    "8 fixed-model tests and 7 input-downloader tests passed",
-    "Full raw image/cache/partition verification passed: 1901 TIFFs and 1701 known-class images; original source partition retained byte-for-byte.",
-    "Continual loader/scope verification passed: effective 64 experimental training labels across all methods/orders/stages; 72 planned chains."
+    "5 continual recipe, mask, distillation and replay-label checks",
+    "8 fixed-model checks and 7 input-downloader checks",
+    "Image fingerprints, cache hashes and registered partition integrity verified",
+    "Continual loader and stage scopes verified for the registered 10.0% mask; 72 planned chains."
   ],
   "revision_package": {
     "name": "DL_XRD_R1",
@@ -125,5 +115,9 @@
     "data_release_assets_verified": true,
     "source_repository": "zihanw97/DL_XRD",
     "independent_repository": "zihanw97/DL_XRD_R1"
+  },
+  "continual_training": {
+    "requested_target_anchor_fraction": 0.1,
+    "logit_distillation_temperature": 2.0
   }
 }

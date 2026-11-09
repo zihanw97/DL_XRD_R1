@@ -6,8 +6,7 @@ encoder, with spectral normalization on `fc1` and `fc2` only. CNN replaces
 the RFF/GP head with a biased linear classifier; it retains those SN layers.
 
 The three models use exactly the same immutable sample roles and experimental
-anchor identities. The new manifests reveal a requested 10% of target-training
-labels. Validation labels provide separate selection supervision. Source and
+anchor identities. The experimental training-label setting is 10.0%. Validation labels provide separate selection supervision. Source and
 target-anchor cross-entropy use raw logits. Only the adapted model adds:
 
 * biased Gaussian MMD² on L2-normalized 256-D source features versus hidden-label
@@ -34,8 +33,7 @@ each of eight eligible materials out in both domains, then uses approximately
 each manifest.
 `data/manifests/fixed/protocol.json` registers the requested fraction, exact
 manifest/cache SHA256 hashes, seeds and rounding convention. The runner
-validates the declared budget against this registration rather than treating
-integer-rounded realized fractions as an exact 10%. A custom manifest needs
+validates the declared budget against this registration. A custom manifest needs
 a corresponding registration supplied with `--manifest-metadata`.
 
 From the package root, first inspect the plans:

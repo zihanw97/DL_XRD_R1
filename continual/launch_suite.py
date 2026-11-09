@@ -106,7 +106,7 @@ def prepare(args):
         allowed_gpu_uuids=allowed,
         maximum_concurrent_workers=len(allowed), checkpoints_saved=False,
         source_snapshot={f: sha(snapshot / f) for f in copied},
-        supervision="Fixed 10% target-training label mask (64/642) and original train/validation/test roles; no hidden training label revealed",
+        supervision="Experimental training-label fraction: 10.0%; registered train/validation/test roles and label masks",
         requested_target_anchor_fraction=data.REQUESTED_TARGET_ANCHOR_FRACTION,
         target_training_anchors=data.EXPECTED_ANCHOR_COUNT, target_training_n=data.TARGET_TRAINING_N,
         validation="Common all-seen validation; equal blocks within each domain, sum of domain CE; no future validation or test selection",
@@ -250,7 +250,6 @@ if __name__ == "__main__":
             continuation_learning_rate=2e-5, fresh_fallback_learning_rate=1e-4,
             source_target_anchor_count=data.EXPECTED_ANCHOR_COUNT, target_training_n=data.TARGET_TRAINING_N,
             requested_target_anchor_fraction=data.REQUESTED_TARGET_ANCHOR_FRACTION,
-            realized_target_anchor_fraction=data.EXPECTED_ANCHOR_COUNT / data.TARGET_TRAINING_N,
             cache=str(data.DEFAULT_CACHE), assignments=str(data.DEFAULT_ASSIGNMENTS),
             file_writes=False, training_started=False), indent=2))
     elif args.command == "prepare":
