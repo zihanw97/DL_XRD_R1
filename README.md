@@ -11,7 +11,6 @@ labels, with logit-distillation temperature `T=2`, and retains its replay and
 geometry-training phases.
 See [fixed/README.md](fixed/README.md) and
 [continual/README.md](continual/README.md) for the separate configurations.
-No results or checkpoints are included.
 
 ## Download the inputs
 
@@ -37,8 +36,6 @@ checking SHA256 hashes. The uncompressed inputs occupy about 9.2 GB.
 Large input files are release assets rather than ordinary Git blobs.
 `python data/download_inputs.py --cache-only` fetches only the two caches;
 the default fixed-model OOD evaluation also needs the raw noise/SiC images.
-Historical implementations and releases in the separate `DL_XRD` repository
-are outside this revised project. No historical model checkpoints are supplied.
 
 ## Files
 
@@ -50,7 +47,7 @@ supplementary/dkl/        Supplementary variational CNN–DKL control
 data/sim_dataset_new/     Independent copies of 901 simulated TIFFs
 data/experiment_1500_maxima/          800 known-class experimental TIFFs
 data/experiment_1500_maxima_outliner/ 200 confirmed noise/SiC TIFFs
-data/cache/               Image/label NPZ inputs, no model parameters
+data/cache/               Image/label NPZ inputs
 data/manifests/            Fixed split/anchor assignments and OOD inputs
 data/partitions/           Exact current continual-learning assignments
 data/metadata/             Sample hierarchy and raw-input checksums
@@ -64,7 +61,7 @@ PyTorch 2.6.0 (CUDA 12.4). Install PyTorch for the intended CPU/CUDA environment
 and then install `requirements.txt`. DKL additionally needs
 `supplementary/dkl/requirements.txt`.
 
-From `DL_XRD_R1`, these commands inspect inputs and plans without training:
+From `DL_XRD_R1`, inspect the inputs and training plans with:
 
 ```bash
 python data/verify_inputs.py --full

@@ -1,7 +1,7 @@
 """Portable entry point for the unchanged historical DKL control.
 
-No historical weights are distributed. Training requires an explicitly supplied
-SNGP encoder checkpoint; the default action only validates the data/recipe.
+Training uses an explicitly supplied SNGP encoder checkpoint.
+The default action validates the data and recipe.
 """
 import argparse
 import hashlib

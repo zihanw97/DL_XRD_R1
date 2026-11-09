@@ -234,7 +234,7 @@ def schedule(args):
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     sub = p.add_subparsers(dest="command", required=True)
-    sub.add_parser("plan", help="Print the complete configuration without writing files or starting training")
+    sub.add_parser("plan", help="Print the complete configuration")
     prep = sub.add_parser("prepare")
     prep.add_argument("--run-dir", required=True)
     prep.add_argument("--gpus", default="0", help="Comma-separated local GPU indices; one worker per idle listed GPU")

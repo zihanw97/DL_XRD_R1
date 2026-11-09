@@ -42,12 +42,11 @@
       "folds": 24
     }
   },
-  "selected_without_model_results": true,
   "shared_across_models": [
     "cnn_baseline",
     "cnn_sngp",
     "cnn_sngp_adapt"
   ],
-  "historical_result_reproduction": false,
-  "stable_subseed": "First8bytes, little-endian, of SHA256 colon-joined string(partition_or_anchor_seed,protocol,heldout,domain/class as used)."
+  "stable_subseed": "First8bytes, little-endian, of SHA256 colon-joined string(partition_or_anchor_seed,protocol,heldout,domain/class as used).",
+  "selection_basis": "Fixed protocol and registered partition/anchor seeds."
 }

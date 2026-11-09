@@ -1,4 +1,4 @@
-"""Train matched fixed models, or validate the clean paper recipe without training."""
+"""Train matched fixed models or validate the paper recipe."""
 import argparse
 import csv
 import gc
@@ -43,7 +43,7 @@ def main(argv=None):
     action.add_argument('--dry-run',action='store_true',help='Read and validate manifests without loading images or allocating a model')
     parser.add_argument('--device',default='cuda:0' if torch.cuda.is_available() else 'cpu')
     parser.add_argument('--output',type=Path,default=ROOT/'outputs/fixed')
-    parser.add_argument('--save-weights',action='store_true',help='Optional runtime export; no weights are included in this package')
+    parser.add_argument('--save-weights',action='store_true',help='Export selected model weights')
     parser.add_argument('--ood-manifest',type=Path,default=ROOT/'data/manifests/ood.csv')
     parser.add_argument('--skip-ood',action='store_true',help='Skip post-selection OOD predictions; no effect on fitting')
     args=parser.parse_args(argv)

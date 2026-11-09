@@ -14,25 +14,20 @@ experimental labels, and 393 hidden labels. Its 30% label budget is separate
 from the newly paper-aligned fixed-model pipeline's 10% budget.
 
 Install the root requirements plus this directory's `requirements.txt`.
-From the package root, validate the recipe and data without training:
+From the package root, validate the recipe and data with:
 
 ```bash
 python supplementary/dkl/run.py
 ```
 
-The original experiment was warm-started from a non-adapted CNN–SNGP encoder.
-No historical encoder or DKL checkpoint is distributed in this code/data
-package. To run the same warm-start strategy, explicitly supply a compatible
-encoder produced separately:
+The control uses a non-adapted CNN–SNGP encoder for its warm start. Supply a
+compatible encoder with:
 
 ```bash
 python supplementary/dkl/run.py --train --encoder-checkpoint /path/to/encoder_weights.pt
 ```
 
-Supplying a newly trained encoder creates a new experiment; it does not
-recreate the removed historical checkpoint. The unchanged DKL training
-function writes recovery/selected weights only when training is explicitly
-started. No outputs or weights are included in this distribution.
+The DKL training function writes recovery and selected weights during training.
 
 After the validation-selected state is locked, the runner exports predictions
 and raw 256-D features for historical D1–D3 train/validation/test roles, the

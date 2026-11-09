@@ -4,7 +4,7 @@
   "destination_npz_sha256": "17d8118cb454d081ebd224dba4e440b3412d9e9b24ac21b12cd7d18444a50222",
   "continual_partition_sha256": "3869763d4851afc2c82b65c95184b2e7e8d6be035e03c0f30cccd9a317feeaf3",
   "fixed_images_npz_sha256": "4d434e3f82a5efc70b052c39a69c384a0a73db14ae4c06b8a082a846150bed31",
-  "source_cache_contents": "Input images, labels, legacy masks and batch size only; no model or optimizer state.",
+  "source_cache_contents": "Input images, labels, legacy masks and batch size.",
   "source_to_npz_all_arrays_bitwise_equal": true,
   "keys": {
     "batch_size": {
@@ -431,7 +431,7 @@
   "original_continual_anchors_preserved": 127,
   "original_continual_target_training": 642,
   "original_continual_target_validation": 79,
-  "fixed_protocol": "Fresh paper-matched partitions; not historical result-reproduction manifests.",
+  "fixed_protocol": "Paper-matched fixed-model partitions.",
   "fixed_split": "Within each permitted domain/class, floor(0.1*n) validation and floor(0.1*n) internal test; remainder training. Outer material tests removed first.",
   "fixed_anchor_fraction_requested": 0.1,
   "fixed_anchor_rounding": "Per target-training class, round half upward with at least one anchor for a nonempty class; no validation/test anchor selection.",

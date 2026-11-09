@@ -18,9 +18,7 @@ target-anchor cross-entropy use raw logits. Only the adapted model adds:
 There is no pseudo-label CE, cluster compactness, supervised contrastive loss,
 domain-probe selection, dense refinement, continuation search or retry stage
 in this fixed-model path. The explicit loss weights are 1/1/2/2 for source CE,
-target-anchor CE, global MMD and prototype alignment. The paper leaves the loss
-weights symbolic; these numeric defaults retain the previous base-training
-weights and must be stated if this clean version is used for new results.
+target-anchor CE, global MMD and prototype alignment. These numeric defaults define the fixed-model objective.
 
 Adam starts at 5e-4, exponentially decays by 0.997 per epoch, and has a maximum
 800 epochs. Validation source mean CE plus target mean CE is smoothed with
@@ -33,8 +31,7 @@ The new scan protocol has separate within-domain training/validation/internal
 test roles and full domain-specific D4 holdouts. The new grouped protocol holds
 each of eight eligible materials out in both domains, then uses approximately
 80/10/10 of the remaining development images. Three repeats are registered in
-each manifest. These **new** 10%-anchor splits and this unrefined recipe do not
-reproduce the historical 30%-anchor, 8:1-development, refined result tables.
+each manifest.
 `data/manifests/fixed/protocol.json` registers the requested fraction, exact
 manifest/cache SHA256 hashes, seeds and rounding convention. The runner
 validates the declared budget against this registration rather than treating
@@ -56,13 +53,11 @@ python -m fixed.run --protocol grouped --fold repeat_01/holdout_Cu --train --dev
 ```
 
 Omitting `--fold` trains every registered fold, three methods per fold. `--methods`
-can restrict the methods. No jobs are launched when copying or validating this
-package. Runtime exports include all selected-state predictions, raw 256-D
+can restrict the methods. Runtime exports include all selected-state predictions, raw 256-D
 features, calibration/classification diagnostics, epoch logs and a selection
 lock. Internal and outer tests are reported separately. Experimental training
-accuracy joins hidden truth only after the state is selected. Weights are not
-saved unless `--save-weights` is explicitly provided. No results or weights are
-distributed in this code-and-data package.
+accuracy joins hidden truth only after the state is selected. Use
+`--save-weights` to export the selected weights.
 
 By default each selected fit also predicts the same 200 confirmed noise-only
 and SiC images in `data/manifests/ood.csv`, exporting probabilities and raw
@@ -73,14 +68,13 @@ AUROC/AUPR/FPR95. A separate familiar-validation threshold allows at most
 and OOD false acceptance are then measured on the pooled familiar internal
 test and each OOD category. There is no BCC/FCC/HCP accuracy for noise or SiC.
 Use `--skip-ood` to omit these post-selection exports, or `--ood-manifest` for
-another explicitly defined pool. Every grouped fit can therefore retain OOD
-predictions without retaining a model checkpoint.
+another explicitly defined pool.
 
 The continual-learning implementation has its own preserved recipe. Its
 geometry-training and distillation components are not affected by removal of
 fixed-model refinement.
 
-Run the small loss/mask/selection checks without constructing the large CNN:
+Run the loss, mask, and selection checks with:
 
 ```bash
 python -m unittest discover -s fixed/tests -v

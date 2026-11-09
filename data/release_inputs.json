@@ -28,7 +28,5 @@
     }
   ],
   "raw_image_count": 1901,
-  "raw_instruction_count": 20,
-  "contains_model_weights": false,
-  "contains_training_results": false
+  "raw_instruction_count": 20
 }

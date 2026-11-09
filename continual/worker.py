@@ -1,4 +1,4 @@
-"""Run one registered four-stage chain without serializing model weights."""
+"""Run one registered four-stage continual-learning chain."""
 from __future__ import annotations
 import argparse
 import copy
@@ -320,7 +320,7 @@ def run(args):
     with (output / "worker.lock").open("a+") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         if read(status_path)["status"] != "prepared":
-            raise RuntimeError("Only a fresh prepared job may run; no weights are persisted for resume")
+            raise RuntimeError("Job must be in the prepared state before execution")
         status = dict(status="running", pid=os.getpid(), physical_gpu_uuid=os.environ.get("CUDA_VISIBLE_DEVICES"),
                       job=job, phase="verifying_inputs", stage=0, epoch=0, completed_stages=[],
                       started_utc=now(), updated_utc=now(), checkpoints_saved=False)

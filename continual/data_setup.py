@@ -3,7 +3,7 @@
 This module never decodes or preprocesses raw diffraction images. It verifies
 the existing float32 cache and preserves every original scan role. The
 registered 10% target-training label mask is shared across all strategies.
-The distributed cache is a tensor-only NPZ data file, not a model checkpoint.
+The distributed cache stores image and label arrays in NPZ format.
 Its arrays preserve the original float32 image values exactly.
 """
 from __future__ import annotations

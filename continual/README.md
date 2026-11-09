@@ -18,8 +18,7 @@ python continual/verify_inputs.py
 
 The first command prints the complete plan; the second verifies all 1,701
 image fingerprints, registered label masks and every method/order/stage scope.
-Neither creates results, queries GPUs or starts training. The plan retains
-the six available controls, three seeds and
+The plan includes six available controls, three seeds and
 three block orders, the replay-capacity sweep, and the material-disjoint
 secondary comparison: 72 four-stage chains in total. Five of the six controls
 were displayed in the latest manuscript; the separate uniform experience
@@ -34,14 +33,11 @@ python continual/launch_suite.py schedule --run-dir continual/results/comparison
 
 The GPU list can be comma-separated. The scheduler uses only listed GPUs that
 are idle under its existing memory/utilization checks. One worker uses one GPU.
-No run is registered or launched merely by importing the code. The distributed
-folder contains no experiment results or model/optimizer checkpoints; those
-directories are created only by explicit execution.
 
 Data defaults are `data/cache/xrd_dataset_cache.npz` and
 `data/partitions/continual_partition.csv`. `prepare --cache ... --assignments ...`
 can relocate these files. The NPZ is a tensor-only image/label dataset, loaded
-with `allow_pickle=False`; it has no trained parameters. Its conversion
+with `allow_pickle=False`. Its conversion
 manifest and every registered image fingerprint are checked before training.
 The original partition CSV, scan roles and block assignments are preserved.
 When reading that SHA256-verified legacy CSV, the loader applies the active
@@ -81,11 +77,7 @@ The procedure uses:
   joint retraining. Validation/test inputs never update precision.
 - Saved predictions, exact sample IDs and raw 256-dimensional pre-head
   embeddings after each selected stage, with timing, retention, transfer and
-  calibration reporting. No model or optimizer weights are serialized.
-
-Selected weights stay in RAM during a chain. A running detached process can
-continue after an IDE closes, but an interrupted chain cannot resume its model
-state from disk because the existing results-only policy is retained.
+  calibration reporting.
 
 `recipe_provenance.json` supplies the complete active configuration and hashes
 of the original training modules. Internal `frozen_support` modules are kept

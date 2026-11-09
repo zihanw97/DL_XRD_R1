@@ -1,4 +1,4 @@
-"""Verify all preserved continual inputs and the plan without model training."""
+"""Verify all preserved continual inputs and the comparison plan."""
 from collections import Counter
 import json
 import sys

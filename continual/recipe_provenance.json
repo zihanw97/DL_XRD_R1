@@ -131,7 +131,6 @@
       "spectral_normalization": "existing fc1/fc2 only; no architectural layer added"
     },
     "plot_policy": "raw common 256-D pre-head primary; optional L2 diagnostic separately labeled; no favorable t-SNE seed/sample selection",
-    "save_model_or_optimizer_weights": false,
     "logical_stage_updates": 288,
     "physical_work_policy": "Each logical stage has base and dense optimization phases; a triggered fresh-fit fallback adds physical work and all attempted costs are retained",
     "requested_target_anchor_fraction": 0.1,
@@ -167,19 +166,19 @@
   },
   "packaged_module_sha256": {
     "aggregate_suite.py": "89530278b3208742b3ec20982f880cbcc479f7fa1028de8c2ff8a7e1a379fe88",
-    "data_setup.py": "69fea3b029f4ead0d8e13798dc92c35f36298facb32174477fe07589c4efda49",
+    "data_setup.py": "5d759e508cb3fdc40f4465ddbafc0848d6597a6340bf49d1a8af1df33fd6b9a9",
     "frozen_support/__init__.py": "6e2806ce232982a03ba47f9c6c9af75a78ca44930ceae5b93d5801c2e521e17e",
     "frozen_support/losses.py": "e70d2727e2a713975ade5e66e0652d70ff6b4afb9021e1bc51765b6ac2428026",
     "frozen_support/models.py": "d0c549df1546c02d8f1eef98c148d4952fda07fa174b5e0e091593012cda3926",
     "frozen_support/training.py": "df85d57240f1390979a8417d4f4ac4f2bdcaf7d28c6be9a709356289e3f86a55",
     "geometry_losses.py": "fbeb3e827f745ad0f3305270747e4e1ce3cd9627d0ea35b68f044c65ccf67d80",
     "latent_reporting.py": "8cc9aaa71189dbf3a9245a275c42a108fe93cf5b4d951242f271e6fc93393e14",
-    "launch_suite.py": "0ede48dd34b00a574c2806aa40ca875742c13af421bf07b45c7deb5fac02ebc1",
+    "launch_suite.py": "278c7f907bff699ca59a742147c57a01beb19d14c92d6e54ebf84c880ea9082e",
     "metrics_reporting.py": "e9ed675a993b692a09def0e37ccc4f77bcec88cd2700ff0d59e520f1c51f2643",
     "replay_memory.py": "c959f01a537b08d70694635ce51c54fe35b50662761716802822954b2c9ee9fb",
     "training_engine.py": "d43ebac7aed6a221db37a80296d8d84d16a2da62bddd9e7f1abcbfdfc0e96536",
-    "verify_inputs.py": "e64085f7d3e00d0487df1edff25cce14c87e11c843bc6d77409afe6e82edf668",
-    "worker.py": "0b35da66ae64421d2dcc10a9df4912a8e312b42dd331c54c222faeba44c72748"
+    "verify_inputs.py": "f69be1a5050059e65d9036ffa92181d88d27696b6f6d4d86f0e268f96265ed9d",
+    "worker.py": "1397cf0e36eee83b04dd46238340c84bc52282f34f3296af2839fd4318414dc6"
   },
   "architecture_unchanged": true,
   "recipe_changes": [

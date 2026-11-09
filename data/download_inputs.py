@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Download the checksummed input-only GitHub release; never starts training."""
+"""Download and verify checksummed GitHub release inputs."""
 from __future__ import annotations
 
 import argparse
@@ -270,7 +270,7 @@ def main(argv: list[str] | None = None) -> None:
             if missing or invalid:
                 raise ValueError(f"Raw-input verification failed: {len(missing)} missing, {len(invalid)} corrupt")
         print(f"Verified {len(inventory)} raw TIFF inputs", flush=True)
-    print("Input setup complete. No training was started.", flush=True)
+    print("Input setup complete.", flush=True)
 
 
 if __name__ == "__main__":

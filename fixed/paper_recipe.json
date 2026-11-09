@@ -8,7 +8,10 @@
     "rff_dim": 64,
     "rff_gamma": 0.015625,
     "output_classes": 3,
-    "spectral_normalization_layers": ["fc1", "fc2"],
+    "spectral_normalization_layers": [
+      "fc1",
+      "fc2"
+    ],
     "power_iterations": 1,
     "ridge_penalty": 1.0,
     "covariance_momentum": null
@@ -43,7 +46,7 @@
     "uses_latent_geometry": false
   },
   "notes": [
-    "This is a new paper-aligned recipe, not a copy of historical refined result-generating fits.",
+    "Paper-aligned single-stage fixed-model training recipe.",
     "The manuscript does not numerically specify lambda_tgt, lambda_mmd or lambda_anchor; explicit defaults 1,2,2 are retained from the original base-training recipe.",
     "Global MMD uses L2-normalized pre-head source versus hidden-label target inputs only.",
     "Anchor prototype alignment uses raw 256D pre-head features and revealed target anchors only.",
