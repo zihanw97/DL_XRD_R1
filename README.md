@@ -12,6 +12,10 @@ geometry-training phases.
 See [fixed/README.md](fixed/README.md) and
 [continual/README.md](continual/README.md) for the separate configurations.
 
+## Data and code availability
+
+The data supporting this study, including the simulated and experimental 2D XRD datasets, is available at https://github.com/zihanw97/DL_XRD_R1/releases/tag/r1-inputs-20261109. The custom code is available at https://github.com/zihanw97/DL_XRD_R1.
+
 ## Download the inputs
 
 The code, input manifests, acquisition metadata, and split assignments are

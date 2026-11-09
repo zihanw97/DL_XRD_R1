@@ -10,8 +10,7 @@ Gaussian-logit samples, seed 42.
 
 This historical supplementary control retains its original data masks:
 602 simulated training scans, 562 experimental training scans, 169 revealed
-experimental labels, and 393 hidden labels. Its 30% label budget is separate
-from the newly paper-aligned fixed-model pipeline's 10% budget.
+experimental labels, and 393 hidden labels.
 
 Install the root requirements plus this directory's `requirements.txt`.
 From the package root, validate the recipe and data with:

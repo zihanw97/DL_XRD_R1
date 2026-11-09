@@ -115,8 +115,7 @@ def main(argv=None):
     data = load_data(args.cache)
     plan = dict(training_started=args.train, configuration=cfg,
                 training_counts=dict(source=602, target=562, anchors=169, hidden=393),
-                target_training_anchor_fraction='historical 30%; separate from new fixed 10% recipe',
-                encoder_checkpoint_required_for_training=True, historical_weights_included=False,
+                encoder_checkpoint_required_for_training=True,
                 architecture='original flatten CNN; SN dense512/256; three independent ARD-RBF variational GPs,64 inducing/class',
                 predictive_probability='128 scrambled Sobol Gaussian-logit samples; seed42')
     if not args.train:
