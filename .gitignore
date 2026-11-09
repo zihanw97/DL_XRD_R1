@@ -3,7 +3,6 @@ __pycache__/
 .pytest_cache/
 outputs/
 continual/outputs/
-supplementary/dkl/outputs/
 *.pth
 *.pt
 *.ckpt

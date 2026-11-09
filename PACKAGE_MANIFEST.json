@@ -10,9 +10,9 @@
   },
   "source_files_sha256": {
     ".gitattributes": "1770d165db43290d0749fed0b7be6cbd9eb6b968c93bf11d4d83470fd08cda79",
-    ".gitignore": "6d7df45d66d8268055a7ba40c8b5d4d6c9106a571fdbfa3be7d9f9cb14afcc2e",
+    ".gitignore": "98c3ca0f5cc6f84dd631f888910e57dd0039434f7419aa46531b52c7b612e414",
     "CITATION.cff": "73f4bdf3910b428e8e9e2b67fa653cef45701265a890ccc18a9c29a60bfc67b4",
-    "README.md": "f0cb4f0ef55c90df859aa45c2b4f3c6cc710a58594955b6c786d60090ad7fe8e",
+    "README.md": "7c904ca5c8f6d0a4f5024a7caec156cde935618c9bf0d854f9a26435c0b16aba",
     "continual/README.md": "d8bb670ff7c000e2881622d614c93ba5f9d91704a0da33da1105d9abfc9ff66c",
     "continual/aggregate_suite.py": "89530278b3208742b3ec20982f880cbcc479f7fa1028de8c2ff8a7e1a379fe88",
     "continual/data_setup.py": "5d759e508cb3fdc40f4465ddbafc0848d6597a6340bf49d1a8af1df33fd6b9a9",
@@ -60,14 +60,6 @@
     "fixed/training.py": "ffc19294084f50b64aa4801fff48ef6d3722ec2ea9a1c4bd6a5ecf930899be02",
     "models.py": "cf8e695cea35a766d18d65f5249e6cad737651730689e6e8ffb8293f09a50090",
     "requirements.txt": "7859c4bd377167948ee14a618a34df978146f63612d4ac1d8af732058cc6a400",
-    "supplementary/__init__.py": "cfe487185c62a3135b97a425c71dd082d361c5562304adeeba020a94a8fdf2f9",
-    "supplementary/dkl/README.md": "3f0c1c330e9f9f512091301fcc65197062b2bd6cc3b86fc5ca17b1c19738331a",
-    "supplementary/dkl/__init__.py": "a5fe7f2f773874ba3a013bf7b41577a6666ceb34df7603bd5487ee575eb6fc74",
-    "supplementary/dkl/dkl_model.py": "e3f001c3c9bb0555bc1a9f549dc732d37f44859269e880e1c6c4de2d99e8faf5",
-    "supplementary/dkl/dkl_training.py": "9f4724a0c8d96e8f3b748b77b8282dcea41dc74092aae938508726e38424e1fa",
-    "supplementary/dkl/requirements.txt": "20e3024d1b6de2683a96a38e258519cab96882deded42ae5706b44915a3f7ece",
-    "supplementary/dkl/run.py": "24628af34b99da210ec83826db565ab5c60c2f75e185ea1f6d24e148d6f545b5",
-    "supplementary/dkl/training_utils.py": "7bd4efc9b61ceb42ff5c3e421233cbadf0057d5ac93ad262308fc1f9053fe4fe",
     "continual/tests/test_continual_recipe.py": "b77b4e489c6358956bdac58d9fb6356b46ac0da197ed881a3bf29c3a46d3c124"
   },
   "data_checksums": "data/metadata/raw_file_hashes.csv",
@@ -96,8 +88,7 @@
     "52rawpreprocessing examples bitwise equal",
     "Original model architecture and continual training computations retained; logit-distillation temperature T=2",
     "12small architecture/SNGP/fixed-objective checks passed",
-    "fixed and continual plans validated",
-    "DKL tiny-encoder GP API and post-selection export scopes checked"
+    "fixed and continual plans validated"
   ],
   "publication": {
     "repository": "zihanw97/DL_XRD_R1",

@@ -1,7 +1,7 @@
 # DL_XRD_R1: revised XRD classification code and data
 
-Code and input data for CNN, CNN–SNGP, CNN–SNGP–adapt, the four-stage
-continual-learning comparison, and a supplementary CNN–DKL control.
+Code and input data for CNN, CNN–SNGP, CNN–SNGP–adapt, and the four-stage
+continual-learning comparison.
 The shared model uses the original six-convolution encoder, a 256-dimensional
 pre-head embedding, and spectral normalization on the two dense layers only.
 
@@ -47,7 +47,6 @@ the default fixed-model OOD evaluation also needs the raw noise/SiC images.
 models.py                 Original shared CNN/SNGP definitions
 fixed/                    Three-model single-stage training/evaluation
 continual/                Four-stage comparison with 10% labels and T=2
-supplementary/dkl/        Supplementary variational CNN–DKL control
 data/sim_dataset_new/     Independent copies of 901 simulated TIFFs
 data/experiment_1500_maxima/          800 known-class experimental TIFFs
 data/experiment_1500_maxima_outliner/ 200 confirmed noise/SiC TIFFs
@@ -62,8 +61,7 @@ data/metadata/             Sample hierarchy and raw-input checksums
 
 Python 3.10+ is recommended; this package was checked with Python 3.12.4 and
 PyTorch 2.6.0 (CUDA 12.4). Install PyTorch for the intended CPU/CUDA environment
-and then install `requirements.txt`. DKL additionally needs
-`supplementary/dkl/requirements.txt`.
+and then install `requirements.txt`.
 
 From `DL_XRD_R1`, inspect the inputs and training plans with:
 
