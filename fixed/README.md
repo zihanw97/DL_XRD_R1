@@ -14,10 +14,8 @@ target-anchor cross-entropy use raw logits. Only the adapted model adds:
 * the equal-class mean squared Euclidean gap between raw source and revealed
   target-anchor prototypes, omitting classes absent from either batch.
 
-There is no pseudo-label CE, cluster compactness, supervised contrastive loss,
-domain-probe selection, dense refinement, continuation search or retry stage
-in this fixed-model path. The explicit loss weights are 1/1/2/2 for source CE,
-target-anchor CE, global MMD and prototype alignment. These numeric defaults define the fixed-model objective.
+The fixed-model objective uses loss weights 1/1/2/2 for source CE,
+target-anchor CE, global MMD and prototype alignment.
 
 Adam starts at 5e-4, exponentially decays by 0.997 per epoch, and has a maximum
 800 epochs. Validation source mean CE plus target mean CE is smoothed with
@@ -68,9 +66,8 @@ test and each OOD category. There is no BCC/FCC/HCP accuracy for noise or SiC.
 Use `--skip-ood` to omit these post-selection exports, or `--ood-manifest` for
 another explicitly defined pool.
 
-The continual-learning implementation has its own preserved recipe. Its
-geometry-training and distillation components are not affected by removal of
-fixed-model refinement.
+The continual-learning comparison has its own replay and distillation
+settings; see [continual/README.md](../continual/README.md).
 
 Run the loss, mask, and selection checks with:
 

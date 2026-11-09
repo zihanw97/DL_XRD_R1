@@ -283,7 +283,7 @@ class SNGPWithCNN(nn.Module):
         CNNWithPlainHead.features(). Comparing those diagnostics when one
         model is evaluated in a 256-d learned space and the other in a 64-d
         fixed random-Fourier space is not a like-for-like comparison.
-        Continual alignment and geometry objectives use this pre-head
+        Continual alignment and distillation objectives use this pre-head
         representation. The 64-d RFF projection is used by the GP head
         and its precision updates."""
         x = self.cnn(x)

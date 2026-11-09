@@ -5,7 +5,8 @@ experimental training-label setting at 10.0% and logit-distillation temperature
 `T=2`. The registered training-label mask is shared across every strategy,
 seed, order and replay capacity.
 
-The continual procedure includes a common dense geometry phase and feature
+Each update uses a single training phase, selected by validation cross-entropy.
+The proposed strategy combines replay with logit and pre-head feature
 distillation.
 
 From the package root:
@@ -55,22 +56,19 @@ The procedure uses:
   up to 800 epochs per base attempt, and validation-based stopping/selection.
 - The existing bounded fresh-only retry at `1e-4` when its validation trigger
   fires, with all attempt costs retained.
-- The unchanged dense AdamW phase at `5e-5`, weight decay `0.01`, up to
-  60 epochs, compactness 10, supervised contrastive weight 0.1 and temperature
-  0.1, and its validation-only acceptance gates.
 - The main 128-image replay capacity, split 64 source / 64 target; source
   herding and target label-free diversity, preserving the registered 10.0% label mask.
 - Proposed replay-logit distillation weight 3, temperature 2 with the `T**2`
   factor, and raw pre-head feature distillation weight 1. LwF uses logit
   distillation on current inputs without image replay, also at `T=2`.
-  This logit-distillation setting is separate from the geometry contrastive
-  temperature (0.1) and optional validation-fitted calibration controls.
+  Predictive-probability calibration uses separate validation-fitted controls.
 - Epoch-wise GP-statistic resets and selected-state reconstruction from
   permitted current training plus prior replay, or accumulated training for
   joint retraining. Validation/test inputs never update precision.
 - Saved predictions, exact sample IDs and raw 256-dimensional pre-head
   embeddings after each selected stage, with timing, retention, transfer and
-  calibration reporting.
+  calibration reporting. Latent-space separation and alignment are measured
+  as post-selection diagnostics.
 
 `recipe_provenance.json` supplies the complete active configuration and hashes
 of the original training modules. Internal `frozen_support` modules are kept

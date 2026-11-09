@@ -140,7 +140,6 @@ def base_phase_config(configuration, method, stage):
     fresh = stage == 1 or method == "joint_retraining"
     cfg.update(learning_rate=configuration.get("fresh_learning_rate", 5e-4) if fresh else
                configuration.get("continuation_learning_rate", 2e-5),
-               geometry_enabled=True,
                lambda_kd=3. if stage > 1 and method in ["continual", "lwf"] else 0.,
                lambda_feature_kd=1. if stage > 1 and method == "continual" else 0.,
                kd_current=stage > 1 and method == "lwf")
@@ -396,7 +395,6 @@ def run(args):
                 write(folder / "validation_selection_lock.json", dict(stage=stage, block=block,
                     selected_epoch=result["selected_epoch"], selected_validation=result["selected_validation"],
                     selected_attempt=result.get("selected_attempt", 1), base_selected_epoch=result.get("base_selected_epoch"),
-                    geometry_selected_epoch=result.get("geometry_selected_epoch"),
                     selected_state_sha256=state_sha, validation_only=True, test_metrics_used=False, locked_utc=now()))
                 if stage == 1:
                     first_stage_consensus(run, job, state_sha)

@@ -1,6 +1,5 @@
-"""Unified RAM-only reviewer-12 engine; all controls share one selector.
+"""Unified continual-learning engine; all controls share one selector.
 
-Derived from the audited engine_v2 without changing its frozen source.
 The caller sets data availability and refreshes memory only after training.
 Current-input distillation implements LwF without retaining old images.
 """
@@ -8,20 +7,17 @@ from __future__ import annotations
 
 import copy
 import math
-from pathlib import Path
 import random
-import sys
 import time
-import numpy as np
 
 import torch
 from torch import nn
 from torch.nn import functional as F
 from torch.utils.data import DataLoader, IterableDataset
 try:
-    from .geometry_losses import class_compactness, supervised_contrastive, feature_distillation
+    from .distillation_losses import feature_distillation
 except ImportError:
-    from geometry_losses import class_compactness, supervised_contrastive, feature_distillation
+    from distillation_losses import feature_distillation
 
 try:
     from .frozen_support.losses import compute_mmd_loss
@@ -39,12 +35,7 @@ DEFAULTS = dict(max_epochs=800, learning_rate=1e-5, learning_rate_decay=0.997, p
     smooth_alpha=0.2, warmup_epochs=5, lambda_rce=1.0, lambda_kd=3.0,
     temperature=2.0, lambda_replay_mmd=0.0, replay_per_class=20, replay_seed=1042,
     initial_candidate=True, retain_target_anchors=True, lambda_target_replay_ce=1.0,
-    teacher_label_agreement=False, kd_current=False, lambda_feature_kd=0., feature_scale=1.,
-    geometry_enabled=False, geometry_learning_rate=5e-5, geometry_max_epochs=60,
-    geometry_optimizer="adamw", geometry_weight_decay=.01, lambda_compactness=10.,
-    lambda_supcon=.1, contrastive_temperature=.1, geometry_warmup_epochs=10,
-    geometry_accuracy_tolerance=.01, geometry_nll_tolerance=.05,
-    geometry_gap_weight=.03, geometry_nll_weight=.1, geometry_patience=30)
+    teacher_label_agreement=False, kd_current=False, lambda_feature_kd=0., feature_scale=1.)
 
 
 def effective_config(config=None):
@@ -54,26 +45,24 @@ def effective_config(config=None):
         raise ValueError(f"Unknown stage settings: {sorted(unknown)}")
     result = {**DEFAULTS, **config}
     result["inner_kwargs"] = {**INNER_DEFAULTS, **config.get("inner_kwargs", {})}
-    for key in ("max_epochs", "patience", "warmup_epochs", "replay_per_class", "geometry_max_epochs", "geometry_warmup_epochs", "geometry_patience"):
+    for key in ("max_epochs", "patience", "warmup_epochs", "replay_per_class"):
         if not isinstance(result[key], int) or isinstance(result[key], bool) or result[key] < 1:
             raise ValueError(f"{key} must be a positive integer")
-    for key in ("learning_rate", "temperature", "feature_scale", "geometry_learning_rate", "contrastive_temperature"):
+    for key in ("learning_rate", "temperature", "feature_scale"):
         if not math.isfinite(result[key]) or result[key] <= 0:
             raise ValueError(f"{key} must be finite and positive")
-    for key in ("min_delta", "lambda_rce", "lambda_kd", "lambda_replay_mmd", "lambda_target_replay_ce", "lambda_feature_kd", "geometry_weight_decay", "lambda_compactness", "lambda_supcon", "geometry_accuracy_tolerance", "geometry_nll_tolerance", "geometry_gap_weight", "geometry_nll_weight"):
+    for key in ("min_delta", "lambda_rce", "lambda_kd", "lambda_replay_mmd", "lambda_target_replay_ce", "lambda_feature_kd"):
         if not math.isfinite(result[key]) or result[key] < 0:
             raise ValueError(f"{key} must be finite and nonnegative")
     if not math.isfinite(result["learning_rate_decay"]) or not 0 < result["learning_rate_decay"] <= 1:
         raise ValueError("learning_rate_decay must be in (0,1]")
     if not 0 < result["smooth_alpha"] <= 1:
         raise ValueError("smooth_alpha must be in (0,1]")
-    for key in ("initial_candidate", "retain_target_anchors", "teacher_label_agreement", "kd_current", "geometry_enabled"):
+    for key in ("initial_candidate", "retain_target_anchors", "teacher_label_agreement", "kd_current"):
         if not isinstance(result[key], bool):
             raise ValueError(f"{key} must be Boolean")
     if result["lambda_target_replay_ce"] and not result["retain_target_anchors"]:
         raise ValueError("Target replay CE requires retained original anchor labels")
-    if result["geometry_optimizer"] not in {"adam", "adamw"}:
-        raise ValueError("geometry_optimizer must be adam or adamw")
     if result["kd_current"] and result["lambda_feature_kd"]:
         raise ValueError("Canonical LwF uses current logit KD only; feature KD is replay-only")
     return result
@@ -226,7 +215,7 @@ def forward_with_prehead(model, inputs):
     return native, logits, std, captured[0]
 
 
-def replay_objective(model, teacher, replay, device, rng, config, *, capture_geometry=False):
+def replay_objective(model, teacher, replay, device, rng, config):
     """One shared student pass per replay domain for CE and filtered distillation.
 
     Anchor-aware replay never reveals a label beyond the original training mask.
@@ -236,11 +225,9 @@ def replay_objective(model, teacher, replay, device, rng, config, *, capture_geo
     """
     zero = torch.zeros((), device=device)
     if replay is None:
-        result = dict(replay_ce=zero, target_replay_ce=zero, kd=zero, replay_mmd=zero, feature_kd=zero)
-        if capture_geometry: result["_geometry"] = []
-        return result
+        return dict(replay_ce=zero, target_replay_ce=zero, kd=zero, replay_mmd=zero, feature_kd=zero)
     native_by_domain, logits_parts, teacher_parts = {}, [], []
-    replay_ce, target_replay_ce, feature_losses, geometry = zero, zero, [], []
+    replay_ce, target_replay_ce, feature_losses = zero, zero, []
     for domain in ("source", "target"):
         memory = replay[domain]
         if domain == "target" and config["retain_target_anchors"]:
@@ -263,8 +250,6 @@ def replay_objective(model, teacher, replay, device, rng, config, *, capture_geo
         model.gp_head.update_precision(native.detach())
         native_by_domain[domain] = native
         known = y >= 0
-        if capture_geometry:
-            geometry.append((domain, features, y))
         if domain == "source":
             if not bool(known.all()):
                 raise ValueError("Source replay requires observed simulated labels")
@@ -297,10 +282,8 @@ def replay_objective(model, teacher, replay, device, rng, config, *, capture_geo
     replay_mmd = zero
     if config["lambda_replay_mmd"] and set(native_by_domain) == {"source", "target"}:
         replay_mmd = compute_mmd_loss(native_by_domain["source"], native_by_domain["target"])
-    result = dict(replay_ce=replay_ce, target_replay_ce=target_replay_ce, kd=kd, replay_mmd=replay_mmd,
-                  feature_kd=torch.stack(feature_losses).mean() if feature_losses else zero)
-    if capture_geometry: result["_geometry"] = geometry
-    return result
+    return dict(replay_ce=replay_ce, target_replay_ce=target_replay_ce, kd=kd, replay_mmd=replay_mmd,
+                feature_kd=torch.stack(feature_losses).mean() if feature_losses else zero)
 
 
 def current_distillation(teacher, batches, captured_logits, device, config):
@@ -516,314 +499,38 @@ def training_feature_scale(model, train_loaders, replay, device):
         model.train(was_training)
 
 
-def snapshot_dense(model, destination=None):
-    """Snapshot dense/RFF/head states while excluding the frozen CNN prefix."""
-    state = {name: value for name, value in model.state_dict().items() if not name.startswith("cnn.")}
-    if destination is None:
-        destination = {name: torch.empty_like(value, device="cpu") for name, value in state.items()}
-    with torch.no_grad():
-        for name, value in state.items():
-            destination[name].copy_(value.detach())
-    return destination
-
-
-def restore_dense(model, state):
-    expected = {name for name in model.state_dict() if not name.startswith("cnn.")}
-    if set(state) != expected:
-        raise ValueError("Dense snapshot keys do not match the unchanged model")
-    outcome = model.load_state_dict(state, strict=False)
-    if outcome.unexpected_keys or any(not name.startswith("cnn.") for name in outcome.missing_keys):
-        raise RuntimeError("Dense restore touched an unexpected model component")
-
-
-@torch.no_grad()
-def geometry_validation_report(model, loaders, device, feature_scale):
-    """Evaluate raw pre-head geometry and mean-field NLL on seen validation."""
-    from sklearn.metrics import silhouette_score
-    was_training = model.training
-    model.eval()
-    xs, ys, domains, reports = [], [], [], {}
-    try:
-        for domain in ("source", "target"):
-            n, correct, ce_sum, nll_sum, blocks = 0, 0, 0., 0., {}
-            for batch in _evaluation_loader(loaders[domain]):
-                x, y, block = batch[0].to(device), batch[1].to(device).long(), batch[2].to(device).long()
-                if bool((y < 0).any()):
-                    raise ValueError("Geometry validation requires revealed validation labels")
-                _, logits, std, features = forward_with_prehead(model, x)
-                ce = F.cross_entropy(logits.double(), y, reduction="none")
-                adjusted = logits.double() / torch.sqrt(1 + math.pi / 8 * std.double().square())
-                nll = F.cross_entropy(adjusted, y, reduction="none")
-                predictions = logits.argmax(1)
-                ce_sum += float(ce.sum()); nll_sum += float(nll.sum())
-                correct += int((predictions == y).sum()); n += len(y)
-                for b in block.unique().tolist():
-                    mask = block == b
-                    part = blocks.setdefault(str(b), dict(n=0, ce_sum=0., nll_sum=0.))
-                    part["n"] += int(mask.sum())
-                    part["ce_sum"] += float(ce[mask].sum())
-                    part["nll_sum"] += float(nll[mask].sum())
-                xs.append(features.double().cpu().numpy())
-                ys.append(y.cpu().numpy())
-                domains.append(np.asarray([domain] * len(y)))
-            reports[domain] = dict(n=n, accuracy=correct / n, raw_ce=ce_sum / n,
-                mean_field_nll=nll_sum / n,
-                block_mean_ce=sum(v["ce_sum"] / v["n"] for v in blocks.values()) / len(blocks),
-                block_mean_mean_field_nll=sum(v["nll_sum"] / v["n"] for v in blocks.values()) / len(blocks))
-        x, y, domain = np.concatenate(xs) / feature_scale, np.concatenate(ys), np.concatenate(domains)
-        if not np.isfinite(x).all():
-            raise FloatingPointError("Nonfinite validation geometry")
-        valid_silhouette = 1 < len(np.unique(y)) < len(y)
-        silhouette = float(silhouette_score(x, y)) if valid_silhouette else None
-        gaps, common = [], []
-        for label in np.unique(y):
-            source = x[(y == label) & (domain == "source")]
-            target = x[(y == label) & (domain == "target")]
-            if len(source) and len(target):
-                common.append(int(label))
-                gaps.append(float(np.linalg.norm(source.mean(0) - target.mean(0))))
-        gap = float(np.mean(gaps)) if gaps else None
-        return dict(domains=reports, class_silhouette=silhouette, mean_centroid_gap=gap,
-            common_alignment_classes=common, n=len(y),
-            mean_field_nll=sum(r["block_mean_mean_field_nll"] for r in reports.values()) / 2,
-            raw_validation_score=sum(r["block_mean_ce"] for r in reports.values()),
-            feature_scale=feature_scale,
-            scaling="raw pre-head divided by one frozen training scalar; Euclidean metric",
-            selection_scope="seen validation only; no test/future rows",
-            probability="analytical mean-field pi/8; stable log-softmax NLL",
-            feature_degenerate=bool(np.max(np.ptp(x, axis=0)) < 1e-7))
-    finally:
-        model.train(was_training)
-
-
-def geometry_score(report, config):
-    values = [report["class_silhouette"], report["mean_centroid_gap"], report["mean_field_nll"]]
-    if any(value is None or not math.isfinite(value) for value in values):
-        return None
-    return -values[0] + config["geometry_gap_weight"] * values[1] + config["geometry_nll_weight"] * values[2]
-
-
-def geometry_eligible(report, baseline, config):
-    if geometry_score(report, config) is None:
-        return False
-    for domain in ("source", "target"):
-        r, b = report["domains"][domain], baseline["domains"][domain]
-        if r["accuracy"] + 1e-12 < b["accuracy"] - config["geometry_accuracy_tolerance"]:
-            return False
-        if r["block_mean_mean_field_nll"] > b["block_mean_mean_field_nll"] + config["geometry_nll_tolerance"] + 1e-12:
-            return False
-    return True
-
-
-def _geometry_current_objective(model, batches, device, criterion, config):
-    captured, logits = [], []
-    feature_hook = model.rff.register_forward_pre_hook(lambda _m, args: captured.append(args[0]))
-    logit_hook = model.gp_head.register_forward_hook(lambda _m, _args, output: logits.append(output[0]))
-    inner_kwargs = copy.deepcopy(config["inner_kwargs"])
-    # Frozen-prefix geometry refinement uses reliable labels, without pseudo CE.
-    inner_kwargs.update(lambda_mmd=0., lambda_classwise_mmd=.25,
-                        use_pseudo_labels=False, lambda_pseudo=0.)
-    try:
-        inner = _forward_and_losses(model, batches["source"], batches["target"], criterion,
-                                   device, update_precision=True, **inner_kwargs)
-    finally:
-        feature_hook.remove(); logit_hook.remove()
-    if len(captured) != 2 or len(logits) != 2:
-        raise RuntimeError("Geometry must reuse exactly two current-domain passes")
-    geometry = [(domain, f, batches[domain][1].to(device).long())
-                for domain, f in zip(("source", "target"), captured)]
-    return inner, geometry, logits
-
-
-def _train_geometry_phase(model, train_loaders, validation_loaders, device, config,
-                          replay, teacher, membership, epoch_offset, callback):
-    """Frozen-CNN dense refinement, validation-guarded and RAM-only."""
-    if not hasattr(model, "cnn"):
-        raise ValueError("Geometry refinement requires the unchanged CNN prefix")
-    cfg = copy.deepcopy(config)
-    # Record the effective dense-phase objective, as well as applying it below.
-    cfg["inner_kwargs"].update(lambda_mmd=0., lambda_classwise_mmd=.25,
-                               use_pseudo_labels=False, lambda_pseudo=0.)
-    timing = dict(optimization_seconds=0., validation_seconds=0., state_copy_seconds=0.,
-                  precision_seconds=0., callback_seconds=0., scale_seconds=0.)
-    tick = _stamp(device)
-    scale = training_feature_scale(model, train_loaders, replay, device)
-    timing["scale_seconds"] += _stamp(device) - tick
-    cfg["feature_scale"] = scale["scale"]
-    original_flags = {name: p.requires_grad for name, p in model.named_parameters()}
-    for p in model.cnn.parameters():
-        p.requires_grad_(False); p.grad = None
-    optimizer = None
-    try:
-        optimizer_class = torch.optim.AdamW if cfg["geometry_optimizer"] == "adamw" else torch.optim.Adam
-        optimizer = optimizer_class([p for p in model.parameters() if p.requires_grad],
-            lr=cfg["geometry_learning_rate"], weight_decay=cfg["geometry_weight_decay"])
-        started = _stamp(device)
-        tick = _stamp(device)
-        baseline = geometry_validation_report(model, validation_loaders, device, scale["scale"])
-        timing["validation_seconds"] += _stamp(device) - tick
-        selected = copy.deepcopy(baseline)
-        best_score = geometry_score(baseline, cfg)
-        if best_score is None:
-            best_score = math.inf
-        best_epoch, bad_epochs, records = 0, 0, []
-        tick = _stamp(device)
-        best_state = snapshot_dense(model)
-        timing["state_copy_seconds"] += _stamp(device) - tick
-        criterion, rng = nn.CrossEntropyLoss(), random.Random(cfg["replay_seed"] + 90000)
-        reason = "max_epochs"
-        for epoch in range(1, cfg["geometry_max_epochs"] + 1):
-            epoch_started = _stamp(device)
-            model.train(); model.cnn.eval(); model.gp_head.reset_precision()
-            iterators = {d: iter(v) for d, v in train_loaders.items()}
-            steps = max(len(v) for v in train_loaders.values())
-            sums = {k: 0. for k in ["inner_loss", "replay_ce", "target_replay_ce", "kd", "replay_mmd", "feature_kd", "compactness", "supcon", "total_loss"]}
-            ramp = min(1., epoch / cfg["geometry_warmup_epochs"])
-            tick = _stamp(device)
-            for _ in range(steps):
-                batches = {}
-                for domain, loader in train_loaders.items():
-                    try: batches[domain] = next(iterators[domain])
-                    except StopIteration:
-                        iterators[domain] = iter(loader); batches[domain] = next(iterators[domain])
-                optimizer.zero_grad(set_to_none=True)
-                inner, geometry, captured_logits = _geometry_current_objective(model, batches, device, criterion, cfg)
-                old = replay_objective(model, teacher, replay, device, rng, cfg, capture_geometry=True)
-                geometry.extend(old.pop("_geometry"))
-                old["kd"] = old["kd"] + current_distillation(teacher, batches, captured_logits, device, cfg)
-                compactness = class_compactness(geometry, scale["scale"])
-                supcon = supervised_contrastive(geometry, cfg["contrastive_temperature"])
-                total = (inner["total_loss"] + cfg["lambda_rce"] * old["replay_ce"]
-                    + cfg["lambda_target_replay_ce"] * old["target_replay_ce"]
-                    + cfg["lambda_kd"] * old["kd"] + cfg["lambda_feature_kd"] * old["feature_kd"]
-                    + cfg["lambda_replay_mmd"] * old["replay_mmd"]
-                    + ramp * (cfg["lambda_compactness"] * compactness + cfg["lambda_supcon"] * supcon))
-                if not bool(torch.isfinite(total)):
-                    raise FloatingPointError("Nonfinite dense geometry objective")
-                total.backward(); optimizer.step()
-                for key, loss in dict(inner_loss=inner["total_loss"], **old, compactness=compactness,
-                                      supcon=supcon, total_loss=total).items():
-                    sums[key] += float(loss.detach()) / steps
-            timing["optimization_seconds"] += _stamp(device) - tick
-            tick = _stamp(device)
-            n_seen = recompute_sngp_precision(model, precision_loaders(train_loaders, replay), device)
-            if n_seen != len(membership):
-                raise AssertionError("Dense-phase precision includes unavailable inputs")
-            timing["precision_seconds"] += _stamp(device) - tick
-            tick = _stamp(device)
-            report = geometry_validation_report(model, validation_loaders, device, scale["scale"])
-            timing["validation_seconds"] += _stamp(device) - tick
-            score, eligible = geometry_score(report, cfg), geometry_eligible(report, baseline, cfg)
-            improved = eligible and score < best_score - cfg["min_delta"]
-            if improved:
-                selected, best_score, best_epoch, bad_epochs = copy.deepcopy(report), score, epoch, 0
-                tick = _stamp(device)
-                best_state = snapshot_dense(model, best_state)
-                timing["state_copy_seconds"] += _stamp(device) - tick
-            else:
-                bad_epochs += 1
-            record = dict(phase="geometry", phase_epoch=epoch, epoch=epoch_offset + epoch,
-                **sums, validation=dict(score=report["raw_validation_score"], domains=report["domains"],
-                    selection_aggregation="raw CE diagnostic; geometry selector uses guarded validation geometry"),
-                geometry_validation=report, geometry_eligible=eligible, geometry_score=score,
-                selected=improved, best_epoch=epoch_offset + best_epoch if best_epoch else None,
-                best_score=best_score if math.isfinite(best_score) else None, bad_epochs=bad_epochs,
-                clustering_scale=ramp, learning_rate_used=optimizer.param_groups[0]["lr"],
-                next_learning_rate=optimizer.param_groups[0]["lr"], optimizer_steps=steps,
-                epoch_seconds=_stamp(device) - epoch_started, timing=copy.deepcopy(timing))
-            records.append(record)
-            if callback is not None:
-                tick = _stamp(device); callback(copy.deepcopy(record))
-                timing["callback_seconds"] += _stamp(device) - tick
-            if epoch >= cfg["geometry_warmup_epochs"] and bad_epochs >= cfg["geometry_patience"]:
-                reason = "early_stopping"; break
-        tick = _stamp(device)
-        restore_dense(model, best_state)
-        model.eval(); model.zero_grad(set_to_none=True)
-        timing["state_copy_seconds"] += _stamp(device) - tick
-        elapsed = _stamp(device) - started + timing["scale_seconds"]
-        timing.update(stage_total_no_reporting_seconds=elapsed - timing["callback_seconds"],
-                      stage_total_with_callbacks_seconds=elapsed,
-                      device_synchronized=torch.device(device).type == "cuda")
-        return dict(selected_epoch=best_epoch, selected_validation=selected, initial_validation=baseline,
-                    history=records, epochs_run=epoch, stopping_reason=reason, timing=timing,
-                    feature_scale=scale, config=cfg,
-                    optimizer_configuration=dict(name=cfg["geometry_optimizer"],
-                        learning_rate=cfg["geometry_learning_rate"], weight_decay=cfg["geometry_weight_decay"]),
-                    snapshot_policy="non-CNN state only; no frozen-prefix CPU weight copies")
-    finally:
-        if optimizer is not None: del optimizer
-        for name, p in model.named_parameters():
-            p.requires_grad_(original_flags[name])
-        model.eval()
-
-
 def train_stage(model, train_loaders, validation_loaders, device, *, train_ids,
                 validation_ids, forbidden_ids=(), config=None, replay=None,
                 teacher=None, callback=None):
-    """Base fitting, optional frozen-prefix geometry refinement, then posterior."""
+    """Fit one Adam training phase and select its state by validation CE."""
     cfg, device = effective_config(config), torch.device(device)
+    started = _stamp(device)
     membership = validate_membership(train_loaders, validation_loaders, train_ids,
                                     validation_ids, forbidden_ids, replay, cfg)
-    begin = _stamp(device)
-    scale_begin = _stamp(device)
-    base_scale = (training_feature_scale(model, train_loaders, replay, device)
-                  if cfg["geometry_enabled"] or cfg["lambda_feature_kd"] else None)
-    scale_seconds = _stamp(device) - scale_begin
-    if base_scale is not None:
-        if base_scale["n"] != len(membership):
+    tick = _stamp(device)
+    feature_scale = (training_feature_scale(model, train_loaders, replay, device)
+                     if cfg["lambda_feature_kd"] else None)
+    scale_seconds = _stamp(device) - tick
+    if feature_scale is not None:
+        if feature_scale["n"] != len(membership):
             raise AssertionError("Training feature-scale support mismatch")
-        cfg["feature_scale"] = base_scale["scale"]
-    def base_callback(record):
+        cfg["feature_scale"] = feature_scale["scale"]
+
+    def stage_callback(record):
         record.update(phase="base", phase_epoch=record["epoch"])
-        if callback is not None: callback(record)
-    base = _train_base_stage(model, train_loaders, validation_loaders, device,
+        if callback is not None:
+            callback(record)
+
+    result = _train_base_stage(model, train_loaders, validation_loaders, device,
         train_ids=train_ids, validation_ids=validation_ids, forbidden_ids=forbidden_ids,
-        config=cfg, replay=replay, teacher=teacher, callback=base_callback if callback else None)
-    for record in base["history"]:
+        config=cfg, replay=replay, teacher=teacher,
+        callback=stage_callback if callback is not None else None)
+    for record in result["history"]:
         record.update(phase="base", phase_epoch=record["epoch"])
-    base["base_feature_scale"] = base_scale
-    if not cfg["geometry_enabled"]:
-        base.update(base_selected_epoch=base["selected_epoch"], geometry_selected_epoch=0,
-                    selection_phase="base", geometry_refinement=None)
-        return base
-    refinement = _train_geometry_phase(model, train_loaders, validation_loaders, device, cfg,
-        replay, teacher, membership, base["epochs_run"], callback)
-    tick = _stamp(device)
-    n_seen = recompute_sngp_precision(model, precision_loaders(train_loaders, replay), device)
-    if n_seen != len(membership):
-        raise AssertionError("Final posterior support differs after geometry refinement")
-    final_precision_seconds = _stamp(device) - tick
-    eigenvalues = torch.linalg.eigvalsh(model.gp_head.precision_matrix)
-    tick = _stamp(device)
-    final_validation = validation_report(model, validation_loaders, device)
-    final_validation_seconds = _stamp(device) - tick
-    final_validation["selection_phase"] = "geometry" if refinement["selected_epoch"] else "base"
-    final_validation["geometry_selection"] = refinement["selected_validation"]
-    timing = {}
-    for key in ("optimization_seconds", "validation_seconds", "state_copy_seconds", "precision_seconds", "callback_seconds"):
-        timing[key] = base["timing"][key] + refinement["timing"][key]
-    timing["precision_seconds"] += final_precision_seconds
-    timing["validation_seconds"] += final_validation_seconds
-    timing["feature_scale_seconds"] = scale_seconds + refinement["timing"]["scale_seconds"]
-    elapsed = _stamp(device) - begin
-    timing.update(stage_total_no_reporting_seconds=elapsed - timing["callback_seconds"],
-                  stage_total_with_callbacks_seconds=elapsed,
-                  device_synchronized=device.type == "cuda")
-    selected_epoch = (base["epochs_run"] + refinement["selected_epoch"]
-                      if refinement["selected_epoch"] else base["selected_epoch"])
-    return dict(base, selected_epoch=selected_epoch, selected_validation=final_validation,
-        base_selected_epoch=base["selected_epoch"], geometry_selected_epoch=refinement["selected_epoch"],
-        selection_phase=final_validation["selection_phase"], geometry_refinement=refinement,
-        history=base["history"] + refinement["history"], epochs_run=base["epochs_run"] + refinement["epochs_run"],
-        timing=timing, base_timing=base["timing"], geometry_timing=refinement["timing"],
-        base_stopping_reason=base["stopping_reason"], geometry_stopping_reason=refinement["stopping_reason"],
-        stopping_reason="max_epochs" if "max_epochs" in [base["stopping_reason"], refinement["stopping_reason"]] else "early_stopping",
-        precision_seen=n_seen,
-        precision=dict(n_seen=n_seen, unique_ids=len(membership), ridge_penalty=model.gp_head.ridge_penalty,
-            covariance_momentum=model.gp_head.ema_momentum, eigenvalue_min=float(eigenvalues.min()),
-            eigenvalue_max=float(eigenvalues.max()), symmetry_max_abs=float((model.gp_head.precision_matrix - model.gp_head.precision_matrix.T).abs().max()),
-            excludes_validation_and_test=True, rebuilt_before_memory_refresh=True,
-            rebuilt_after_both_training_phases=True),
-        geometry_validation=refinement["selected_validation"],
-        feature_degenerate=refinement["selected_validation"]["feature_degenerate"])
+    result.update(base_selected_epoch=result["selected_epoch"], selection_phase="base",
+                  training_feature_scale=feature_scale)
+    elapsed = _stamp(device) - started
+    result["timing"].update(feature_scale_seconds=scale_seconds,
+        stage_total_no_reporting_seconds=elapsed - result["timing"]["callback_seconds"],
+        stage_total_with_callbacks_seconds=elapsed)
+    return result

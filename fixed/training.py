@@ -1,4 +1,4 @@
-"""Single-phase, validation-selected training; no feature-cluster refinement."""
+"""Single-phase, validation-selected fixed-model training."""
 import gc
 import math
 import random

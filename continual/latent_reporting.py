@@ -323,7 +323,8 @@ def report_latents(run_dir, output_dir=None, make_plots=True):
             sample_scope="all introduced-block train/validation/test rows; target hidden labels joined for post-hoc colors only",
             stage_zero_included=False, future_blocks_included=False, independent_panel_positions_not_comparable=True,
             geometry="seen validation only; raw Euclidean class silhouette primary; joint-validation StandardScaler geometry secondary; not t-SNE coordinates",
-            geometry_development_selected=True, test_or_plot_selection=False,
+            geometry_development_selected=False,
+            selection_criterion="block-balanced validation cross-entropy", test_or_plot_selection=False,
             panels={f"{m}/stage_{s}": dict(input_archive=p["archive"], input_archive_sha256=p["panel"]["archive_sha256"],
                 feature_digest=p["panel"]["feature_digest"], sample_pool_digest=p["panel"]["pool_digest"],
                 coordinate_cache=p.get("coordinate_metadata")) for (m, s), p in panels.items()})

@@ -26,9 +26,8 @@ ORDERS = {"canonical": [1, 2, 3, 4], "rotated": [2, 3, 4, 1], "reverse": [4, 3, 
 
 
 def training_recipe():
-    """The shared base and geometry configuration with logit KD at T=2."""
-    return engine.effective_config(dict(geometry_enabled=True,
-        learning_rate=5e-4, geometry_learning_rate=5e-5, temperature=2.0,
+    """Single-stage training configuration with logit KD at T=2."""
+    return engine.effective_config(dict(learning_rate=5e-4, temperature=2.0,
         inner_kwargs=dict(lambda_mmd=2., lambda_classwise_mmd=2.,
                           lambda_pseudo=.1, use_pseudo_labels=True,
                           pseudo_confidence_threshold=.90)))
@@ -95,7 +94,7 @@ def prepare(args):
         copied.append(str(relative))
     config = dict(schema="reviewer12_domain_incremental_v1", prepared_utc=now(),
         purpose="pipeline_smoke_test_not_scientific_results" if args.smoke else "manuscript_continual_comparison",
-        variant="two_phase_raw_geometry_and_feature_distillation_v1",
+        variant="single_phase_replay_and_feature_distillation_v1",
         run_directory=str(run), jobs=jobs(args.smoke), profiles=profiles,
         cache=str(cache_path), cache_sha256=cache_hash,
         batch_size=32, training=training_recipe(),
@@ -111,16 +110,14 @@ def prepare(args):
         target_training_anchors=data.EXPECTED_ANCHOR_COUNT, target_training_n=data.TARGET_TRAINING_N,
         validation="Common all-seen validation; equal blocks within each domain, sum of domain CE; no future validation or test selection",
         initialization="Fresh encoder and RFF seed; each chain physically reconstructs its first stage and verifies a seed/order/stream state consensus",
-        optimization="Fresh fits Adam5e-4; warm continuations Adam2e-5; every stage then frozen-CNN dense AdamW5e-5 refinement up to60epochs. Raw compactness10, SupCon.1; full adds rawfeatureKD1. CanonicalLwF remains current-input logitKD only.",
-        geometry_selection="validation-only; each domain accuracy drop at most .01 and MFNLL rise at most .05; raw silhouette/gap with training-only scalar scale",
+        optimization="Each stage uses Adam with validation-selected training: fresh fits5e-4, warm continuations2e-5. Full CL adds replay-logitKD3 and pre-head featureKD1; LwF uses current-input logitKD3. Distillation T=2.",
         storage="Selected states stay in RAM; all-scope features/logits/std/probabilities and logs saved after initialization and every stage",
         probability="Analytical mean-field pi/8 primary; validation-only per-domain temperature control after each selected stage",
         memory_policy="Half source, half target; only original training labels retained. Source herding/target diversity versus domain-balanced uniform reservoir ER",
         zero_memory_point="Naive fine-tuning is the M=0 limit of memory-only distillation; LwF is a distinct current-input KD control",
-        limitations=["Fixed label domain-incremental, not class-incremental", "Mostly-overlap experimental D4 is Cu/FCC only", "No new acquisition campaign or instrument independence", "Memory budget counts stored training images; teacher weights and common seen validation access reported separately", "Seeds vary initialization, RFF, minibatch/replay randomness; fixed partition/anchor identities", "Bounded fresh-fit rescue uses validation only; no test-selected retries or favored-seed replacement", "Geometry participates in validation selection; no claim of independent latent-geometry validation"])
+        limitations=["Fixed label domain-incremental, not class-incremental", "Mostly-overlap experimental D4 is Cu/FCC only", "No new acquisition campaign or instrument independence", "Memory budget counts stored training images; teacher weights and common seen validation access reported separately", "Seeds vary initialization, RFF, minibatch/replay randomness; fixed partition/anchor identities", "Bounded fresh-fit rescue uses validation only; no test-selected retries or favored-seed replacement", "Latent-space diagnostics are computed after validation-based model selection"])
     if args.smoke:
-        config["training"].update(max_epochs=1, patience=1, warmup_epochs=1,
-                                   geometry_max_epochs=2, geometry_warmup_epochs=1)
+        config["training"].update(max_epochs=1, patience=1, warmup_epochs=1)
     write(run / "configuration.json", config)
     for job in config["jobs"]:
         write(run / "jobs" / job["job_id"] / "status.json", dict(status="prepared", job=job, checkpoints_saved=False))

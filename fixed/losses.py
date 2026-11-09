@@ -1,4 +1,4 @@
-"""The fixed-model objective in the manuscript, without cluster refinement."""
+"""The fixed-model classification and domain-alignment objective."""
 import torch
 import torch.nn.functional as F
 

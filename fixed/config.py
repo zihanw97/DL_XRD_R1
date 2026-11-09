@@ -18,13 +18,13 @@ def validate_recipe(config):
         'batch_size','patience','minimum_epochs','validation_ema_alpha','minimum_improvement',
         'source_classification_weight','target_anchor_classification_weight',
         'adapt_global_mmd_weight','adapt_anchor_prototype_weight','global_mmd_sigma',
-        'requested_target_anchor_fraction','pseudo_label_classification','cluster_refinement',
-        'backend_continuation','dense_refinement','retries'}
+        'requested_target_anchor_fraction','pseudo_label_classification',
+        'backend_continuation','retries'}
     if set(parameters)!=required:
         raise ValueError('Missing or unknown training parameters: '+str(set(parameters)^required))
     if parameters['optimizer']!='Adam':
         raise ValueError('This fixed runner implements Adam only')
-    for flag in ['pseudo_label_classification','cluster_refinement','backend_continuation','dense_refinement']:
+    for flag in ['pseudo_label_classification','backend_continuation']:
         if parameters[flag] is not False:
             raise ValueError(flag+' is excluded from this fixed manuscript recipe')
     if parameters['retries']!=0:

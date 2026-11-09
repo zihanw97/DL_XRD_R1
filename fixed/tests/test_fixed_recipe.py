@@ -17,12 +17,12 @@ import numpy as np
 
 
 class FixedObjectiveTests(unittest.TestCase):
-    def test_recipe_rejects_architecture_and_refinement_misdeclarations(self):
+    def test_recipe_rejects_unsupported_architecture_and_training_options(self):
         load=lambda:json.loads((Path(__file__).parents[1]/'paper_recipe.json').read_text())
         validate_recipe(load())
         wrong=load();wrong['architecture']['cnn_head']='pool'
         with self.assertRaises(ValueError):validate_recipe(wrong)
-        wrong=load();wrong['training']['cluster_refinement']=True
+        wrong=load();wrong['training']['pseudo_label_classification']=True
         with self.assertRaises(ValueError):validate_recipe(wrong)
         wrong=load();wrong['training']['optimizer']='AdamW'
         with self.assertRaises(ValueError):validate_recipe(wrong)

@@ -34,9 +34,7 @@
     "global_mmd_sigma": 1.0,
     "requested_target_anchor_fraction": 0.1,
     "pseudo_label_classification": false,
-    "cluster_refinement": false,
     "backend_continuation": false,
-    "dense_refinement": false,
     "retries": 0
   },
   "selection": {

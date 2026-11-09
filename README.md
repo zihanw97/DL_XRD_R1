@@ -6,8 +6,9 @@ The shared model uses the original six-convolution encoder, a 256-dimensional
 pre-head embedding, and spectral normalization on the two dense layers only.
 
 The experimental training-label setting is 10.0%. The fixed models use one
-training stage, while continual learning uses logit-distillation temperature
-`T=2` with replay and geometry-training phases.
+training stage, and each continual update uses a single validation-selected
+training phase. Replay and distillation are configured by strategy, with
+logit-distillation temperature `T=2`.
 See [fixed/README.md](fixed/README.md) and
 [continual/README.md](continual/README.md) for the separate configurations.
 
